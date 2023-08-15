@@ -1,0 +1,29 @@
+-- Manipulating & Querying Data --
+
+INSERT INTO drivers (id, first_name, last_name) VALUES (1, 'J', 'B'), (2, 'C', 'Z'), (3, 'M', 'Z-B');
+INSERT INTO vehicles (make, model, driver_id) VALUES ('Subaru', 'Crosstrek', 1), ('Subaru', 'Outback', 2), ('Cat', 'Bus', 3);
+SELECT * from drivers;
+SELECT * from vehicles;
+SELECT * from vehicles LIMIT 3;
+
+DELETE from vehicles WHERE driver_id = 2;
+
+INSERT INTO vehicles (make, model, driver_id) VALUES ('Toyota', 'Sienna', 1);
+
+-- Joins & Groups Bys --
+
+SELECT * from vehicles WHERE driver_id = 3;
+
+SELECT * from vehicles JOIN drivers ON vehicles.driver_id = drivers.id WHERE drivers.first_name = 'J';
+
+SELECT driver_id, count(*) from vehicles GROUP BY driver_id;
+
+SELECT count(*) from vehicles JOIN drivers ON vehicles.driver_id = drivers.id WHERE vehicles.make = 'Subaru';
+
+-- Structuring Data --
+
+ALTER TABLE vehicles ADD color;
+
+UPDATE vehicles (color) set = 'red';
+
+ALTER TABLE drivers ADD email, address;
