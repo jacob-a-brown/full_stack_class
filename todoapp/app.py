@@ -1,7 +1,8 @@
 from some_info import password
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
+import sys
 
 PASSWORD = password
 
@@ -11,6 +12,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://brown:{PASSWORD}@localhos
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
 
 class Todo(db.Model):
     __tablename__ = 'todos'
@@ -20,28 +23,35 @@ class Todo(db.Model):
     def __repr__(self):
         return f'<Todo {self.id} {self.description}>'
 
-# sets up flask db init and flask db migrate from the command line
-#migrate = Migrate(app, db)
-
-db.create_all()
-
 # route to listen to todos/create. requests that come in with the method "post"
 @app.route('/todos/create', methods=['POST'])
 def create_todo():
-    # get the todo item from the form
-    # gets the json body that was sent to the request
-    description = request.get_json()['description']
+    error = False
+    body = {}
+    try:
+        # get the todo item from the form
+        # gets the json body that was sent to the request
+        description = request.get_json()['description']
 
-    # add the todo to the database table
-    todo = Todo(description = description)
-    db.session.add(todo)
-    db.session.commit()
+        # add the todo to the database table
+        todo = Todo(description = description)
+        db.session.add(todo)
+        db.session.commit()
+        body['description'] = todo.description
+    except:
+        error=True
+        db.session.rollback()
+        print(sys.exec_info())
+    finally:
+        db.session.close()
 
-    # update page with the new todo item
-    #return redirect(url_for('index'))
-    return jsonify({
-        'description':todo.description
-        })
+    if error:
+        abort (400)
+    else:
+        # update page with the new todo item
+        #return redirect(url_for('index'))
+        return jsonify(body)
+
 
 
 # listens to home page        
