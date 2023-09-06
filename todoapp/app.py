@@ -1,5 +1,5 @@
 from some_info import password
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 
@@ -29,7 +29,8 @@ db.create_all()
 @app.route('/todos/create', methods=['POST'])
 def create_todo():
     # get the todo item from the form
-    description = request.form.get('description', '')
+    # gets the json body that was sent to the request
+    description = request.get_json()['description']
 
     # add the todo to the database table
     todo = Todo(description = description)
@@ -37,8 +38,10 @@ def create_todo():
     db.session.commit()
 
     # update page with the new todo item
-    return redirect(url_for('index'))
-
+    #return redirect(url_for('index'))
+    return jsonify({
+        'description':todo.description
+        })
 
 
 # listens to home page        
