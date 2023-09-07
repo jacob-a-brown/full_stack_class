@@ -1,10 +1,34 @@
+<!DOCTYPE html>     
 <html>
     <head>
         <title>To-Do App</title>
-        <!--
-        <link href="{{url_for('static', filename='css/styles.css')}}" type='text/css' rel='stylesheet' />
-        -->
-        <link href="static/css/styles.css" type='text/css' rel='stylesheet' />
+        <!--<link href="{{url_for('static', filename='css/styles.css')}}" type='text/css' rel='stylesheet' />-->
+        <style>
+            .hidden {
+                display: none;
+            }
+            ul {
+                width: 200px;
+            }
+            ul li {
+                list-style: none;
+                padding: 0;
+                margin: 0;
+            }
+            li{
+                clear: both;
+            }
+            li button {
+                -webkit-appearance: none;
+                appearance: none;
+                border: 0;
+                outline: 0;
+                color: red;
+                float: right;
+                cursor: pointer;
+                font-size: 20px;
+            }
+        </style>
     </head>
     <body>
         <form id='form'>
@@ -16,10 +40,62 @@
         </div>
         <ul id='todos'>
             {% for d in data%}
-            <li>{{d.description}}</li>
+            <li>
+                <input class="check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked="checked" {% endif %} />
+                {{d.description}}
+                <button class="delete-button" data-id="{{ d.id}}">
+                    &cross;
+                </button>
+            </li>
             {% endfor %}
         </ul>
         <script>
+
+            // listens to the checkboxes and updates the database to be true or false for completed
+            const checkboxes=document.querySelectorAll('.check-completed');
+            for (let i = 0; i < checkboxes.length; i++) {
+                const checkbox = checkboxes[i];
+                checkbox.onchange = function(e) {
+                    console.log('event', e);
+                    const newCompleted = e.target.checked;
+                    const todoID = e.target.dataset['id']
+                    fetch('/todos/' + todoID + '/set-completed', {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            'completed': newCompleted
+                        }),
+                        headers: {
+                            'Content-Type': 'application/json'
+                        }
+                    })
+                    .then(function(){
+                        document.getElementById('error').className='hidden';
+                    })
+                    .catch(function() {
+                    document.getElementById('error').className='';
+                    })
+                }
+            }
+
+            // listens to the delete buttons and removes associated checkboxes and todos from the page
+            const deletebuttons = document.querySelectorAll('.delete-button');
+            for(let i = 0; i< deletebuttons.length; i++){
+                const deletebutton = deletebuttons[i];
+                deletebutton.onclick = function(e) {
+                    console.log('event', e)
+                    const newDeleted = 
+                    const todoID = e.target.dataset['id']
+                    fetch('/todos/' + todoID + '/delete-me', {
+                        method: 'DELETE',
+                        body: JSON.stringify({
+                            'deleted':
+                        })
+                    })
+                }
+            }
+
+            // listens to the submit form and adds the item to the page, as well as
+            // associated checkboxes and delete boxes (whose current functionality only works upon refresh)
             document.getElementById('form').onsubmit = function(e) {
                 e.preventDefault();
                 fetch('/todos/create', {
@@ -36,9 +112,19 @@
                 })
                 .then(function(jsonResponse) {
                     console.log(jsonResponse);
+                    // add the new list item (to do) to the page
                     const liItem = document.createElement('LI');
                     liItem.innerHTML = jsonResponse['description'];
                     document.getElementById('todos').appendChild(liItem);
+
+                    // add an associated checkbox to the page after the list item has been created and added
+                    const newCheckBox = document.createElement('input');
+                    newCheckBox.type = "checkbox";
+                    newCheckBox.setAttribute('data-id', jsonResponse['id']);
+                    liItem.prepend(newCheckBox);
+
+                    //newCheckBox.class = "check-completed";
+                    //document.getElementByClassName("check-completed").appendChild(newCheckBox)
                     document.getElementById('error').className='hidden';
                 })
                 .catch(function() {
@@ -48,4 +134,3 @@
         </script>
     </body>
 </html>
-[p]
