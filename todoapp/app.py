@@ -67,16 +67,18 @@ def set_completed_todo(todo_id):
 
     return redirect(url_for('index'))
 
-@app.route('/todos/<todo_id>/delete-me', methods=['DELETE'])
+@app.route('/todos/<todo_id>', methods=['DELETE'])
 def delete_me(todo_id):
     try:
-        pass
+        Todo.query.filter_by(id=todo_id).delete()
+        db.session.commit()
     except:
-        pass
+        db.session.rollback()
+        print(sys.exec_info())
     finally:
-        pass
+        db.session.close()
 
-    return redirect(url_for('index'))
+    return jsonify({ 'success': True })
 
 # handler listens to home page        
 @app.route('/')

@@ -72,7 +72,7 @@
                         document.getElementById('error').className='hidden';
                     })
                     .catch(function() {
-                    document.getElementById('error').className='';
+                        document.getElementById('error').className='';
                     })
                 }
             }
@@ -83,13 +83,18 @@
                 const deletebutton = deletebuttons[i];
                 deletebutton.onclick = function(e) {
                     console.log('event', e)
-                    const newDeleted = 
                     const todoID = e.target.dataset['id']
-                    fetch('/todos/' + todoID + '/delete-me', {
-                        method: 'DELETE',
-                        body: JSON.stringify({
-                            'deleted':
-                        })
+                    fetch('/todos/' + todoID, {
+                        method: 'DELETE'
+                    })
+                    .then(function(){
+                        document.getElementById('error').className='hidden';
+
+                        // reload the window after deleting for an update
+                        window.location.href = '/';
+                    })
+                    .catch(function(){
+                        document.getElementById('error').className='';
                     })
                 }
             }
@@ -123,8 +128,12 @@
                     newCheckBox.setAttribute('data-id', jsonResponse['id']);
                     liItem.prepend(newCheckBox);
 
-                    //newCheckBox.class = "check-completed";
-                    //document.getElementByClassName("check-completed").appendChild(newCheckBox)
+                    // add an associated delete button to the page after the list item has been created
+                    const newDeleteButton = document.createElement('button');
+                    newDeleteButton.setAttribute('data-id', jsonResponse['id']);
+                    newDeleteButton.innerHTML = '&cross;';
+                    liItem.appendChild(newDeleteButton);
+
                     document.getElementById('error').className='hidden';
                 })
                 .catch(function() {
