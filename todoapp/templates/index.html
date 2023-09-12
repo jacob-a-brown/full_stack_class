@@ -7,8 +7,12 @@
             .hidden {
                 display: none;
             }
+            .lists-wrapper, .todos-wrapper{
+                display: inline-block;
+                vertical-align: top;
+            }
             ul {
-                width: 200px;
+                width: 300px;
             }
             ul li {
                 list-style: none;
@@ -31,67 +35,119 @@
         </style>
     </head>
     <body>
-        <form id='form'>
-            <input type='text' id='description' name='description' />
-            <input type='submit' value='Create' />
-        </form>
-        <div id='error' class='hidden'>
-            Something went wrong!
+        <!-- todo lists -->
+        <div class="lists-wrapper">
+            <h3>TODO LISTS</h3>
+            <form id="list-form">
+                <input type="text" id="list-description" name="list-description" />
+                <input type="submit" value="Create List" />
+            </form>
+
+            <ul id='lists'>
+                {% for list in lists %}
+                <li>
+                    <input class="list-completed" data-id="{{ list.id }}" type="checkbox" />
+                    <a href="{{ list.id }} ">
+                        {{ list.name }}
+                    </a>
+                    <button class='delete-list' data-id = "{{ list.id }}">
+                        &cross;
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
         </div>
-        <ul id='todos'>
-            {% for d in data%}
-            <li>
-                <input class="check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked="checked" {% endif %} />
-                {{d.description}}
-                <button class="delete-button" data-id="{{ d.id}}">
-                    &cross;
-                </button>
-            </li>
-            {% endfor %}
-        </ul>
+
+        <!-- individual todos -->
+        <div class='todos-wrapper'>
+            <h3>TODO ITEMS</h3>
+            <form id='todo-form'>
+                <!-- The follow p is to store the active list's ID as the item of an item -->
+                <input id="list_id" class="hidden" value = "{{active_list.id}}" />
+                <input type='text' id='todo-description' name='todo-description' />
+                <input type='submit' value='Create Task' />
+            </form>
+
+            <h4>{{ active_list.name }}</h4>
+
+            <!-- error message if something went wrong with the fetch -->
+            <div id='error' class='hidden'>
+                Something went wrong!
+            </div>
+        
+            <ul id='todos'>
+                {% for todo in todos%}
+                <li>
+                    <input class="check-completed" data-id="{{ todo.id }}" data-list="{{ active_list.id}}" type="checkbox" {% if todo.completed %} checked="checked" {% endif %} />
+                    {{todo.description}}
+                    <button class="delete-button" data-id="{{ todo.id }}">
+                        &cross;
+                    </button>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
         <script>
 
-            // listens to the checkboxes and updates the database to be true or false for completed
-            const checkboxes=document.querySelectorAll('.check-completed');
-            for (let i = 0; i < checkboxes.length; i++) {
-                const checkbox = checkboxes[i];
-                checkbox.onchange = function(e) {
-                    console.log('event', e);
-                    const newCompleted = e.target.checked;
-                    const todoID = e.target.dataset['id']
-                    fetch('/todos/' + todoID + '/set-completed', {
+            // ****** BEGIN TODO LIST FUNCTIONS ******
+
+
+            // listens to full list checkboxes and updates the database to be true or false for completed
+            function list_checkbox_handler(e) {
+                console.log('list checkbox', e);
+
+                if (e.target.checked){
+                    const listID = e.target.dataset['id']
+
+                    fetch('/lists/' + listID + '/set-completed', {
                         method: 'POST',
-                        body: JSON.stringify({
-                            'completed': newCompleted
-                        }),
                         headers: {
                             'Content-Type': 'application/json'
                         }
                     })
                     .then(function(){
-                        document.getElementById('error').className='hidden';
+                        document.getElementById('error').className = 'hidden';
+
+                        // only update the checkboxes that are in the correct list
+                        const todoCheckboxes = document.querySelectorAll('.check-completed')
+                        for (let j = 0; j < todoCheckboxes.length; j++){
+                            const checkbox = todoCheckboxes[j];
+                            if(checkbox.dataset.list == listID){
+                                checkbox.checked = true;
+                            }
+                        }
                     })
                     .catch(function() {
-                        document.getElementById('error').className='';
+                        document.getElementById('error').className = '';
                     })
                 }
             }
 
-            // listens to the delete buttons and removes associated checkboxes and todos from the page
-            const deletebuttons = document.querySelectorAll('.delete-button');
-            for(let i = 0; i< deletebuttons.length; i++){
-                const deletebutton = deletebuttons[i];
-                deletebutton.onclick = function(e) {
-                    console.log('event', e)
-                    const todoID = e.target.dataset['id']
-                    fetch('/todos/' + todoID, {
-                        method: 'DELETE'
+            const list_checkboxes = document.querySelectorAll('.list-completed');
+            for (let i = 0; i < list_checkboxes.length; i++){
+                const list_checkbox = list_checkboxes[i];
+                list_checkbox.onchange = list_checkbox_handler;
+            }
+
+            // listens to the list delete buttons to delete a todo list and all of its children todo items
+            const list_delete_buttons = document.querySelectorAll('.delete-list')
+            for(let i = 0; i < list_delete_buttons.length; i++){
+                const list_delete_button = list_delete_buttons[i];
+                list_delete_button.onclick = function(e) {
+                    const listID = e.target.dataset.id;
+                    console.log(e)
+                    fetch('/lists/' + listID + '/delete-me', {
+                        method: "DELETE",
                     })
-                    .then(function(){
+                    .then(function(response){
+                        return response.json();
+                    })
+                    .then(function(jsonResponse){
+                        newWindowID = jsonResponse['new_page_id'];
+                        console.log(newWindowID);
                         document.getElementById('error').className='hidden';
 
-                        // reload the window after deleting for an update
-                        window.location.href = '/';
+                        window.location.href = '/lists/' + newWindowID;
                     })
                     .catch(function(){
                         document.getElementById('error').className='';
@@ -99,14 +155,120 @@
                 }
             }
 
+            // listens to the input form to create a new todo list
+            document.getElementById('list-form').onsubmit = function(e){
+                e.preventDefault();
+                console.log(e);
+                fetch('/lists/create', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        'name':document.getElementById('list-description').value
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(function(response) {
+                    return response.json();
+                })
+                .then(function(jsonResponse) {
+                    console.log(jsonResponse);
+                    // add the new list item (to do) to the page
+                    const liItem = document.createElement('LI');
+                    liItem.innerHTML = jsonResponse['name'];
+                    document.getElementById('lists').appendChild(liItem);
+
+                    // add an associated checkbox to the page after the list item has been created and added
+                    const newCheckBox = document.createElement('input');
+                    newCheckBox.type = "checkbox";
+                    newCheckBox.setAttribute('data-id', jsonResponse['id']);
+                    newCheckBox.onchange = list_checkbox_handler;
+                    liItem.prepend(newCheckBox);
+
+                    // add an associated delete button to the page after the list item has been created
+                    const newDeleteButton = document.createElement('button');
+                    newDeleteButton.setAttribute('data-id', jsonResponse['id']);
+                    newDeleteButton.setAttribute('class', 'delete-list')
+                    newDeleteButton.innerHTML = '&cross;';
+                    //newDeleteButton.onclick = delete_todo_handler;
+                    liItem.appendChild(newDeleteButton);
+
+                    window.location.reload(true);
+
+
+                    document.getElementById('error').className='hidden';
+                })
+                .catch(function() {
+                    document.getElementById('error').className='';
+                })
+            } 
+
+            // ****** END TODO LIST FUNCTIONS ******
+
+
+            // ****** BEGIN INDIVIDUAL TODO TASK FUNCTIONS ******
+
+            function todo_checkbox_handler(e){
+               console.log('event', e);
+                const newCompleted = e.target.checked;
+                const todoID = e.target.dataset['id'];
+                fetch('/todos/' + todoID + '/set-completed', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        'completed': newCompleted
+                    }),
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(function(){
+                    document.getElementById('error').className='hidden';
+                })
+                .catch(function() {
+                    document.getElementById('error').className='';
+                }) 
+            }
+
+            // listens to the checkboxes and updates the database to be true or false for completed
+            const todo_checkboxes=document.querySelectorAll('.check-completed');
+            for (let i = 0; i < todo_checkboxes.length; i++) {
+                const todo_checkbox = todo_checkboxes[i];
+                todo_checkbox.onchange = todo_checkbox_handler;
+            }
+
+            // listens to the delete buttons and removes associated checkboxes and todos from the page
+            function delete_todo_handler(e) {
+                console.log('delete todo task', e);
+                const todoID = e.target.dataset['id']
+                fetch('/todos/' + todoID, {
+                    method: 'DELETE'
+                })
+                .then(function(){
+                    document.getElementById('error').className='hidden';
+
+                    // reload the window after deleting for an update
+                    window.location.reload(true);
+                })
+                .catch(function(){
+                    document.getElementById('error').className='';
+                })
+            }
+
+            const deletebuttons = document.querySelectorAll('.delete-button');
+            for(let i = 0; i< deletebuttons.length; i++){
+                const deletebutton = deletebuttons[i];
+                deletebutton.onclick = delete_todo_handler;
+            }
+
             // listens to the submit form and adds the item to the page, as well as
             // associated checkboxes and delete boxes (whose current functionality only works upon refresh)
-            document.getElementById('form').onsubmit = function(e) {
+            document.getElementById('todo-form').onsubmit = function(e) {
                 e.preventDefault();
                 fetch('/todos/create', {
                     method: 'POST',
                     body: JSON.stringify({
-                        'description':document.getElementById('description').value
+                        'description':document.getElementById('todo-description').value,
+                        'list_id': document.getElementById('list_id').value
                     }),
                     headers: {
                         'Content-Type': 'application/json'
@@ -126,13 +288,17 @@
                     const newCheckBox = document.createElement('input');
                     newCheckBox.type = "checkbox";
                     newCheckBox.setAttribute('data-id', jsonResponse['id']);
+                    newCheckBox.onchange = todo_checkbox_handler;
                     liItem.prepend(newCheckBox);
 
                     // add an associated delete button to the page after the list item has been created
                     const newDeleteButton = document.createElement('button');
                     newDeleteButton.setAttribute('data-id', jsonResponse['id']);
+                    newDeleteButton.setAttribute('class', 'delete-button')
                     newDeleteButton.innerHTML = '&cross;';
+                    newDeleteButton.onclick = delete_todo_handler;
                     liItem.appendChild(newDeleteButton);
+
 
                     document.getElementById('error').className='hidden';
                 })
@@ -140,6 +306,8 @@
                     document.getElementById('error').className='';
                 })
             }
+
+            // ****** END INDIVIDUAL TODO TASK FUNCTIONS ******
         </script>
     </body>
 </html>
