@@ -12,18 +12,14 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+from flask_migrate import Migrate
 
-# password. file hidden by .gitignore
-from some_info import password
 
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://brown:{password}@localhost:5432/fyyur'
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
@@ -65,6 +61,8 @@ class Artist(db.Model):
     # TODO: implement any missing fields, as a database migration using Flask-Migrate
 
 # TODO Implement Show and Artist models, and complete all model relationships and properties, as a database migration.
+migrate = Migrate(app, db)
+
 
 #----------------------------------------------------------------------------#
 # Filters.
