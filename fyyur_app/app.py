@@ -12,16 +12,25 @@ import logging
 from logging import Formatter, FileHandler
 from flask_wtf import Form
 from forms import *
+
+# password. file hidden by .gitignore
+from some_info import password
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
 
 app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = f'postgresql://brown:{password}@localhost:5432/fyyur'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-# TODO: connect to a local postgresql database
+
+# TODO: connect to a local postgresql database <-- DONE
+
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -511,7 +520,8 @@ if not app.debug:
 
 # Default port:
 if __name__ == '__main__':
-    app.run()
+    app.debug = True
+    app.run(host="0.0.0.0")
 
 # Or specify port manually:
 '''
