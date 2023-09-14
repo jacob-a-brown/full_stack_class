@@ -251,44 +251,49 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   form = VenueForm(request.form)
-  error = False
-  data = {}
-  try:
-    venue = Venue(name = form.name.data,
-                  genres = form.genres.data,
-                  city = form.city.data,
-                  state = form.state.data,
-                  address = form.address.data,
-                  phone = form.phone.data,
-                  website_link = form.website_link.data,
-                  image_link = form.image_link.data,
-                  facebook_link = form.facebook_link.data,
-                  seeking_talent = form.seeking_talent.data,
-                  seeking_description = form.seeking_description.data)
 
-    db.session.add(venue)
-    db.session.commit()
+  # validate the data
+  if form.validate_on_submit():
+    error = False
+    data = {}
+    try:
+      venue = Venue(name = form.name.data,
+                    genres = form.genres.data,
+                    city = form.city.data,
+                    state = form.state.data,
+                    address = form.address.data,
+                    phone = form.phone.data,
+                    website_link = form.website_link.data,
+                    image_link = form.image_link.data,
+                    facebook_link = form.facebook_link.data,
+                    seeking_talent = form.seeking_talent.data,
+                    seeking_description = form.seeking_description.data)
 
-    data['id'] = venue.id
-    data['name'] = venue.name
-    data['genres'] = venue.genres
-    data['city'] = venue.city
-    data['state'] = venue.state
-    data['address'] = venue.address
-    data['phone'] = venue.phone
-    data['website_link'] = venue.website_link
-    data['image_link'] = venue.image_link
-    data['facebook_link'] = venue.facebook_link
-    data['seeking_talent'] = venue.seeking_talent
-    data['seeking_description'] = venue.seeking_description
+      db.session.add(venue)
+      db.session.commit()
 
-  except:
+      data['id'] = venue.id
+      data['name'] = venue.name
+      data['genres'] = venue.genres
+      data['city'] = venue.city
+      data['state'] = venue.state
+      data['address'] = venue.address
+      data['phone'] = venue.phone
+      data['website_link'] = venue.website_link
+      data['image_link'] = venue.image_link
+      data['facebook_link'] = venue.facebook_link
+      data['seeking_talent'] = venue.seeking_talent
+      data['seeking_description'] = venue.seeking_description
+
+    except:
+      error = True
+      db.session.rollback()
+      print(sys.exc_info())
+    
+    finally:
+      db.session.close()
+  else:
     error = True
-    db.session.rollback()
-    print(sys.exc_info())
-  
-  finally:
-    db.session.close()
 
   if error:
     flash(f'Venue {data["name"]} was unsuccessfully listed...')
