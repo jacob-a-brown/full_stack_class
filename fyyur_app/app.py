@@ -116,7 +116,6 @@ def venues():
   data = []
   venues = Venue.query.all()
   locations = Venue.query.distinct(Venue.city, Venue.state).order_by('state').all()
-  print(locations)
 
   # make a list of city/state pairs
   city_state_pairs = []  
@@ -248,10 +247,11 @@ def create_venue_form():
 @app.route('/venues/create', methods=['POST'])
 def create_venue_submission():
   form = VenueForm(request.form)
-  name = form.name.data
+  name = form.name.data  
 
   # validate the data
   if form.validate():
+    print(name)
     error = False
     data = {}
     try:
@@ -295,6 +295,7 @@ def create_venue_submission():
 
   if error:
     flash(f'Venue {name} was unsuccessfully listed...')
+    print(form.errors)
   else:
     flash(f'Venue {name} was successfully listed!')
 
@@ -448,6 +449,7 @@ def edit_artist_submission(artist_id):
 
   if error:
     flash(f'Could not update artist {name}...')
+    print(form.errors)
   else:
     flash(f'Successfully updated artist {name}!')
 
@@ -494,6 +496,7 @@ def edit_venue_submission(venue_id):
 
   if error:
     flash(f'Could not update venue {name}...')
+    print(form.errors)
   else:
     flash(f'Successfully updated venue {name}!')
 
@@ -554,6 +557,7 @@ def create_artist_submission():
 
   if error:
     flash(f'Artist {name} was unsuccessfully listed...')
+    print(form.errors)
   else:
     flash(f'Artist {name} was successfully listed!')
 
@@ -624,6 +628,7 @@ def create_show_submission():
 
   if error:
     flash('An error occurred. Show could not be listed...')
+    print(form.errors)
   else:
     flash('Show was successfully lsited!')
 
