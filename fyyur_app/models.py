@@ -10,8 +10,10 @@ class Show(db.Model):
 
     id = db.Column(db.Integer, primary_key = True)
     start_time = db.Column(db.DateTime)
-    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'), nullable = False)
-    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'), nullable = False)
+    venue_id = db.Column(db.Integer, db.ForeignKey('venue.id'),
+        nullable = False)
+    artist_id = db.Column(db.Integer, db.ForeignKey('artist.id'),
+        nullable = False)
 
 class Venue(db.Model):
     """
@@ -32,7 +34,8 @@ class Venue(db.Model):
     seeking_talent = db.Column(db.Boolean)
     seeking_description = db.Column(db.String)
     genres = db.Column(db.ARRAY(db.String), nullable = False)
-    shows = db.relationship('Show', backref = 'venue', lazy = True)
+    shows = db.relationship('Show', backref = 'venue', lazy = 'joined',
+        cascade = 'all, delete-orphan')
 
 class Artist(db.Model):
     """
@@ -51,4 +54,5 @@ class Artist(db.Model):
     seeking_venue = db.Column(db.Boolean)
     seeking_description = db.Column(db.String)
     genres = db.Column(db.ARRAY(db.String), nullable = False)
-    shows = db.relationship('Show', backref = 'artist', lazy = True)
+    shows = db.relationship('Show', backref = 'artist', lazy = 'joined',
+        cascade = 'all, delete-orphan')
