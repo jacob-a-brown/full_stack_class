@@ -80,7 +80,7 @@ def venues():
     name = venue.name
 
     num_upcoming_shows = 0
-    shows = venue.shows
+    shows = db.session.query(Show).join(Venue, Show.venue_id==venue.id)
     for show in shows:
       if show.start_time > datetime.now():
         num_upcoming_shows += 1
@@ -131,7 +131,7 @@ def search_venues():
   for venue in venues:
 
     num_upcoming_shows = 0
-    shows = venue.shows
+    shows = db.session.query(Show).join(Venue, Show.venue_id==venue.id)
     for show in shows:
       if show.start_time > datetime.now():
         num_upcoming_shows += 1
@@ -153,8 +153,9 @@ def show_venue(venue_id):
 
   past_shows = []
   upcoming_shows = []
+  shows = db.session.query(Show).join(Venue, Show.venue_id==venue.id)
 
-  for show in venue.shows:
+  for show in shows:
     show_data = {'artist_id': show.artist_id,
                  'artist_name': show.artist.name,
                  'artist_image_link': show.artist.image_link,
@@ -264,7 +265,7 @@ def search_artists():
   for artist in artists:
 
     num_upcoming_shows = 0
-    shows = artist.shows
+    shows = db.session.query(Show).join(Artist, Show.venue_id==artist.id)
     for show in shows:
       if show.start_time > datetime.now():
         num_upcoming_shows += 1
@@ -288,7 +289,8 @@ def show_artist(artist_id):
   past_shows = []
   upcoming_shows = []
 
-  for show in artist.shows:
+  shows = db.session.query(Show).join(Artist, Show.venue_id==artist.id)
+  for show in shows:
     show_data = {'venue_id': show.venue_id,
                  'venue_name': show.venue.name,
                  'venue_image_link': show.venue.image_link,
