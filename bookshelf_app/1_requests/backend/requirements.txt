@@ -1,0 +1,15 @@
+# formatted for Python version 3.9.13
+aniso8601==9.0.1
+Click==8.0.4
+Flask==1.1.2
+Flask-Cors==4.0.0
+Flask-RESTful==0.3.10
+Flask-SQLAlchemy==2.5.1
+itsdangerous==2.0.1
+Jinja2==2.11.3
+MarkupSafe==2.0.1
+psycopg2==2.9.7
+pytz==2022.1
+six==1.16.0
+SQLAlchemy==1.4.39
+Werkzeug==2.0.3
