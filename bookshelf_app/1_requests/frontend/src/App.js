@@ -112,7 +112,7 @@ class App extends Component {
     let maxPage = Math.ceil(this.state.totalBooks / 8)
     for (let i = 1; i <= maxPage; i++) {
       pageNumbers.push(
-        <div
+        <div>
           key={i}
           className={`page-num ${i === this.state.page ? 'active' : ''}`}
           onClick={() => {this.selectPage(i)}}>{i}

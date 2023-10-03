@@ -52,6 +52,25 @@ class BookTestCase(unittest.TestCase):
 
     # @TODO: Write tests for search - at minimum two
     #        that check a response when there are results and when there are none
+    def test_search_books_not_empty(self):
+        res = self.client().post('/books', json={'search':'a'})
+        data = json.loads(res.data)
+
+        books = Book.query.filter(Book.title.ilike('%a%')).order_by(Book.id).all()
+        formatted_books = [book.format() for book in books]
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['books'], formatted_books)
+        self.assertTrue(data['total_books'])
+
+    def test_search_books_empty(self):
+        res = self.client().post('/books', json={'search': 'zzazaazzz'})
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+        self.assertEqual(data['total_books'], 0)
 
     def test_update_book_rating(self):
         res = self.client().patch("/books/5", json={"rating": 1})
@@ -71,14 +90,15 @@ class BookTestCase(unittest.TestCase):
         self.assertEqual(data["message"], "bad request")
 
     def test_delete_book(self):
-        res = self.client().delete("/books/1")
+        ID_TO_DELETE = 8
+        res = self.client().delete(f"/books/{ID_TO_DELETE}")
         data = json.loads(res.data)
 
-        book = Book.query.filter(Book.id == 1).one_or_none()
+        book = Book.query.filter(Book.id == ID_TO_DELETE).one_or_none()
 
         self.assertEqual(res.status_code, 200)
         self.assertEqual(data["success"], True)
-        self.assertEqual(data["deleted"], 1)
+        self.assertEqual(data["deleted"], ID_TO_DELETE)
         self.assertTrue(data["total_books"])
         self.assertTrue(len(data["books"]))
         self.assertEqual(book, None)

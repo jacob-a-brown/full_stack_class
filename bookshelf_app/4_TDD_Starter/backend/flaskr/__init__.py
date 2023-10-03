@@ -37,9 +37,16 @@ def create_app(test_config=None):
         )
         return response
 
+    # @TODO: Create a new endpoint or update a previous endpoint to handle searching for a team in the title
+    #        the body argument is called 'search' coming from the frontend.
+    #        If you use a different argument, make sure to update it in the frontend code.
+    #        The endpoint will need to return success value, a list of books for the search and the number of books with the search term
+    #        Response body keys: 'success', 'books' and 'total_books'
+
     @app.route("/books")
     def retrieve_books():
         selection = Book.query.order_by(Book.id).all()
+    
         current_books = paginate_books(request, selection)
 
         if len(current_books) == 0:
@@ -52,6 +59,7 @@ def create_app(test_config=None):
                 "total_books": len(Book.query.all()),
             }
         )
+
 
     @app.route("/books/<int:book_id>", methods=["PATCH"])
     def update_book(book_id):
@@ -102,37 +110,51 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route("/books", methods=["POST"])
-    def create_book():
+    def search_or_create_book():
         body = request.get_json()
 
         new_title = body.get("title", None)
         new_author = body.get("author", None)
         new_rating = body.get("rating", None)
 
+        # flag for if a search is performed or if a book is being created
+        # search means search
+        # None means create
+        search = body.get('search', None)
+
         try:
-            book = Book(title=new_title, author=new_author, rating=new_rating)
-            book.insert()
+            # search
+            if search:
+                books = Book.query.filter(Book.title.ilike(f'%{search}%')).order_by(Book.id).all()
+                formatted_books = [book.format() for book in books]
+                return jsonify(
+                        {
+                            "success": True,
+                            "books": formatted_books,
+                            "total_books": len(formatted_books)
+                        }
+                    )
 
-            selection = Book.query.order_by(Book.id).all()
-            current_books = paginate_books(request, selection)
+            #create
+            else:
+                book = Book(title=new_title, author=new_author, rating=new_rating)
+                book.insert()
 
-            return jsonify(
-                {
-                    "success": True,
-                    "created": book.id,
-                    "books": current_books,
-                    "total_books": len(Book.query.all()),
-                }
-            )
+                selection = Book.query.order_by(Book.id).all()
+                current_books = paginate_books(request, selection)
+
+                return jsonify(
+                    {
+                        "success": True,
+                        "created": book.id,
+                        "books": current_books,
+                        "total_books": len(Book.query.all())
+                    }
+                )
 
         except:
             abort(422)
 
-    # @TODO: Create a new endpoint or update a previous endpoint to handle searching for a team in the title
-    #        the body argument is called 'search' coming from the frontend.
-    #        If you use a different argument, make sure to update it in the frontend code.
-    #        The endpoint will need to return success value, a list of books for the search and the number of books with the search term
-    #        Response body keys: 'success', 'books' and 'total_books'
 
     @app.errorhandler(404)
     def not_found(error):
@@ -151,5 +173,10 @@ def create_app(test_config=None):
     @app.errorhandler(400)
     def bad_request(error):
         return jsonify({"success": False, "error": 400, "message": "bad request"}), 400
+
+
+    @app.errorhandler(405)
+    def method_not_allowed(error):
+        return jsonify({"success": False, "error": 405, "message": "bad request"}), 405
 
     return app
