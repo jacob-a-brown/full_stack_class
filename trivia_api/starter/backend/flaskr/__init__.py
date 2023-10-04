@@ -8,6 +8,30 @@ from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
 
+def paginate_results(display_items, request, interval):
+  """
+  Paginate and format the results
+
+  Args:
+    display_items (list): the items to be paginated
+    request (request): the request item from the endpoint
+    interval (int): the number of items to be displayed per page
+
+  Returns:
+    list: the formatted and paginated results for a given page
+  """
+  # default to page 1 if "page" is not a key provided to the request
+  page = request.args.get("page", 1, type=int)
+  
+  # start and end index
+  start = (page - 1) * interval
+  end = start + interval
+
+  # collect, format, and return results
+  paginated_results = display_items[start:end]
+  formatted_paginated_results = [pr.format() for pr in paginated_results]
+  return formatted_paginated_results
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
@@ -16,17 +40,39 @@ def create_app(test_config=None):
   '''
   @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
   '''
+  CORS(app, resources={r"/api/*": {"origins": "*"}})
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
+  @app.after_request
+  def after_request(response):
+    response.headers.add(
+      "Access-Control-Allow-Headers", "Content-Type,Authorization,true"
+    )
+    response.headers.add(
+      "Access-Control-Allow-Methods", "GET,PUT,POST,DELETE,OPTIONS"
+    )
+    return response
 
   '''
   @TODO: 
   Create an endpoint to handle GET requests 
   for all available categories.
   '''
+  @app.rotue("/categories", methods=["GET"])
+  def get_categories():
+    categories = Category.query.order_by(Category.id).all()
+    formatted_categories = [c.format() for c in categories]
 
+    if len(formatted_categories) == 0:
+      abort(404)
+
+    return jsonify({
+      "success": True,
+      "categories": formatted_categories,
+      "total_categories": len(formatted_categories)
+      })
 
   '''
   @TODO: 
@@ -40,6 +86,24 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+  @app.route("/questions", methods=["GET"])
+  def get_questions():
+    questions = Question.query.order_by(Question.id).all()
+    current_questions = paginate_results(questions, request, QUESTIONS_PER_PAGE)
+
+    categories = Category.query.order_by(Category.id).all()
+    formatted_categories = [c.format() for c in categories]
+
+    if len(current_questions) == 0:
+      abort(404)
+
+    return jsonify({
+      "success": True,
+      "questions": current_questions,
+      "total_questions": len(questions),
+      "current_category": None,
+      "categories": formatted_categories
+      })
 
   '''
   @TODO: 
@@ -98,7 +162,39 @@ def create_app(test_config=None):
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
+  @app.errorhandler(400)
+  def bad_request(error):
+    return jsonify({
+        "success": False,
+        "error": 400,
+        "message": "bad request"
+    }), 400
+
+  @app.errorhandler(404)
+  def not_found(error):
+    return jsonify({
+        "success": False,
+        "error": 404,
+        "message": "resource not found"
+    }), 404
+
+  @app.errorhandler(405)
+  def method_not_allowed(error):
+    return jsonify({
+      "success": False,
+      "error": 405,
+      "message": "method not allowed"
+    }), 405
+
+
+  @app.errorhandler(422)
+  def cannot_process(error):
+    return jsonify({
+        "success": False,
+        "error": 422,
+        "message": "cannot process"
+      }), 422
+
   return app
 
     
