@@ -77,6 +77,7 @@ The messages for the others are as follows:
 
 #### GET /categories
 
+* Retrieves all of the categories
 * Returns a JSON object that contains
     * all categories
     * the total number of categories in a dictionary where the key-value pair is category_id: category string
@@ -99,8 +100,9 @@ The messages for the others are as follows:
 
 #### GET /categories/\<int:category_id\>/questions
 
+* Retrieves all of the questions of a given category
 * Returns a JSON object that contains 
-    * the a dictionary containing information about the current category
+    * a dictionary containing information about the current category
     * the questions in a given category as a list of formatted questions. The questions are paginated for a max of 10 per page
     * a success message
     * the total number of questions being returned 
@@ -145,6 +147,7 @@ A formatted question is a dictionary with the following format:
 
 #### GET /questions
 
+* Retrieves all of the questions
 * Returns a JSON object that contains
     * all categories
     * the current category as null because one has not yet been chosen
@@ -176,7 +179,7 @@ A formatted question is a dictionary with the following format:
             "category": 2,
             "difficulty": 2,
             "id": 2,
-            "question": "Who wrote the song "Thizzle Dance"?
+            "question": "Who wrote the song Thizzle Dance?""
         }
     ],
     "success": true,
@@ -197,8 +200,9 @@ A formatted question is a dictionary with the following format:
 
 * POST requests to this endpoint has two functionalities. The first is to search for questions and the other is to create a new question.
 
-##### Search
+##### Search for a question
 
+* Searches for questions that contain the a specific string
 * The JSON object that is passed via POST to this endpoint must contain the key "searchTerm" with a related search term string.
 * Returns a JSON object that contains
     * a list of formatted questions that contain the search term string. The search is case-insensitive. The questions are paginated for a max of 10 per page
@@ -213,7 +217,7 @@ A formatted question is a dictionary with the following format:
             "category": 2,
             "difficulty": 2,
             "id": 2,
-            "question": "Who wrote the song "Thizzle Dance"?
+            "question": "Who wrote the song Thizzle Dance?"
         }
     ],
     "success": true,
@@ -230,10 +234,56 @@ A formatted question is a dictionary with the following format:
     "question": str
 }
 ```
+##### Create a question
+
+* The JSON object that is passed via POST to this endpoint either cannot contain the key "searchTerm" or, if it does, the value must be None.
+* The JSON object passed via POST to this endpoint must contain the following key-value pairs to create a new question:
+    * "question": str
+    * "answer": str
+    * "category": int
+    * "difficulty": int
+* Returns a JSON object that contains
+    * all questions as a list of formatted questions. The questions are paginated for a max of 10 per page
+    * the category of the question that was created
+    * a success message
+    * the total number of questions being returned
+* Sample: curl http://localhost:5000/questions -X POST -H 'Content-Type: application/json' -d '{"question": "Who wrote the song Thizzle Dance?", "answer": "Mac Dre", "category": 2, "difficulty": 2}'
+```
+{    
+    "current_category": 2,
+    "questions": [
+        {
+            "answer": "4",
+            "category": 1,
+            "difficulty": 1,
+            "id": 1,
+            "question": "What is 2+2?"
+        },
+        {
+            "answer": "An unconfined aquifier",
+            "category": 1,
+            "difficulty": 3,
+            "id": 2
+            "question": "Is it easier to recharge a confined or an unconfined aquifer?"
+        },
+        {
+            "answer": "Mac Dre",
+            "category": 2,
+            "difficulty": 2,
+            "id": 2,
+            "question": "Who wrote the song Thizzle Dance?"
+        }
+
+    ],
+    "success": true,
+    "total_questions": 3
+}
+```
+
 #### DELETE /questions/\<int:question_id\>
 
-#### POST /quizzes
 
+#### POST /quizzes
 
 
 ## Testing
