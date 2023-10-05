@@ -55,6 +55,18 @@ This app is still in development and can only be run locally. It can be accessed
 
 N/A
 
+#### Formatted Questions
+A formatted question is a dictionary with the following format:
+```
+{
+    "answer": str,
+    "category": int,
+    "difficulty": int,
+    "id": int,
+    "question": str
+}
+```
+
 ### Errors
 
 Errors return a JSON object in the response, as well as the error status code. Handlers have been made for errors 400, 404, 405, 422, and 500. The JSON object returned is in the following format (using 400 as an example)
@@ -134,16 +146,6 @@ The messages for the others are as follows:
     "total_questions": 2
 }
 ```
-A formatted question is a dictionary with the following format:
-```
-{
-    "answer": str,
-    "category": int,
-    "difficulty": int,
-    "id": int,
-    "question": str
-}
-```
 
 #### GET /questions
 
@@ -186,16 +188,7 @@ A formatted question is a dictionary with the following format:
     "total_questions": 2
 }
 ```
-A formatted question is a dictionary with the following format:
-```
-{
-    "answer": str,
-    "category": int,
-    "difficulty": int,
-    "id": int,
-    "question": str
-}
-```
+
 #### POST /questions
 
 * POST requests to this endpoint has two functionalities. The first is to search for questions and the other is to create a new question.
@@ -224,16 +217,7 @@ A formatted question is a dictionary with the following format:
     "total_questions": 1
 }
 ```
-A formatted question is a dictionary with the following format:
-```
-{
-    "answer": str,
-    "category": int,
-    "difficulty": int,
-    "id": int,
-    "question": str
-}
-```
+
 ##### Create a question
 
 * The JSON object that is passed via POST to this endpoint either cannot contain the key "searchTerm" or, if it does, the value must be None.
@@ -282,9 +266,44 @@ A formatted question is a dictionary with the following format:
 
 #### DELETE /questions/\<int:question_id\>
 
+* Deletes a question with a given id from the
+* Returns a JSON object that contains
+    * a success message
+    * the id of the deleted question
+    * the total number of questions left
+* Sample: curl http://localhost:5000/questions/4 -X DELETE
+```
+{
+    "deleted": 5,
+    "success": true,
+    "total_questions": 21
+}
+```
 
 #### POST /quizzes
 
+* Used to play the quiz. Returns a random question that has not been previously asked.
+* A JSON object is used to pass the category and ids of previously asked questions
+    * "quiz_category": {"id": int}
+        * "id": 0 indicates all categories
+    * "previous_questions": list
+* Returns a JSON object that contains
+    * a success message
+    * the formatted question to be asked in the subsequent round
+* Sample: curl http://localhost:5000/quizzes -X POST -H 'Content-Type: application/json' -d '{"quiz_category": {"id": 0}, "previous_questions": [2, 3, 22]}'
+```
+{
+    "question": {
+        "answer": Uruguay,
+        "category": 6,
+        "difficulty": 4,
+        "id": 11,
+        "question": "Which country won the first ever soccer World Cup in 1930?"
+        ""
+    },
+    "success": true
+}
+```
 
 ## Testing
 To run the tests, run
