@@ -28,56 +28,83 @@ With Postgres running, restore a database using the trivia.psql file provided. F
 psql trivia < trivia.psql
 ```
 
+If using Windows run the following instead:
+```bash
+psql.exe trivia < trivia.psql
+```
+
 ### Running the server
 
-From within the `./src` directory first ensure you are working using your created virtual environment.
+From within the `./src` directory first ensure you are working using your created virtual environment. Make sure that the server has started, as well.
 
 To run the server, execute:
 
 ```bash
-flask run --reload
+FLASK_APP=flaskr FLASK_ENV=development FLASK_DEBUG=true flask run
 ```
 
-The `--reload` flag will detect file changes and restart the server automatically.
+## API Documentation
 
-## ToDo Tasks
-These are the files you'd want to edit in the backend:
+### Getting Started
 
-1. *./backend/flaskr/`__init__.py`*
-2. *./backend/test_flaskr.py*
+#### Base URL
 
+This app is still in development and can only be run locally. It can be accessed at http://localhost:5000
 
-One note before you delve into your tasks: for each endpoint, you are expected to define the endpoint and response data. The frontend will be a plentiful resource because it is set up to expect certain endpoints and response data formats already. You should feel free to specify endpoints in your own way; if you do so, make sure to update the frontend or you will get some unexpected behavior. 
+#### API Keys/Authentication
 
-1. Use Flask-CORS to enable cross-domain requests and set response headers. 
+N/A
 
+### Errors
 
-2. Create an endpoint to handle GET requests for questions, including pagination (every 10 questions). This endpoint should return a list of questions, number of total questions, current category, categories. 
+Errors return a JSON object in the response, as well as the error status code. Handlers have been made for errors 400, 404, 405, 422, and 500. The JSON object returned is in the following format (using 400 as an example)
 
+```
+{
+    "success": False,
+    "error": 400,
+    "message": "bad request"
+}
+```
 
-3. Create an endpoint to handle GET requests for all available categories. 
+The messages for the others are as follows:
+* 404: resource not found
+* 405: method now allowed
+* 422: cannot process
+* 500: internal server error
 
+### Endpoints
 
-4. Create an endpoint to DELETE question using a question ID. 
+#### GET /categories
 
+* General:
+    * Returns a dictionary that contains all categories, total categories, and a success message
+* sample curl http://localhost:5000/categories -X GET
+```
+{
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        "3": "Geography",
+        "4": "History",
+        "5": "Entertainment",
+        "6": "Sports"
+    },
+    "success": true,
+    "total_categories": 6
+}
+```
 
-5. Create an endpoint to POST a new question, which will require the question and answer text, category, and difficulty score. 
+#### GET /categories/<int:category_id>/questions
 
+#### GET /questions
 
-6. Create a POST endpoint to get questions based on category. 
+#### POST /questions
 
+#### DELETE /questions/<int:question_id>
 
-7. Create a POST endpoint to get questions based on a search term. It should return any questions for whom the search term is a substring of the question. 
+#### POST /quizzes
 
-
-8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
-
-
-9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
-
-
-
-## Review Comment to the Students
 ```
 This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
 
@@ -106,6 +133,10 @@ To run the tests, run
 ```
 dropdb trivia_test
 createdb trivia_test
-psql trivia_test < trivia.psql
+psql trivia_test < trivia.psql 
 python test_flaskr.py
+```
+If using Windows the third line should instead be
+```
+psql.exe trivia_test < trivia.psql
 ```
