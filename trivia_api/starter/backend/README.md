@@ -77,9 +77,11 @@ The messages for the others are as follows:
 
 #### GET /categories
 
-* General:
-    * Returns a dictionary that contains all categories, total categories, and a success message
-* sample curl http://localhost:5000/categories -X GET
+* Returns a JSON object that contains
+    * all categories
+    * the total number of categories
+    * a success message
+* Sample: curl http://localhost:5000/categories -X GET
 ```
 {
     "categories": {
@@ -97,11 +99,45 @@ The messages for the others are as follows:
 
 #### GET /categories/\<int:category_id\>/questions
 
+* Returns a JSON object that contains 
+    * the a dictionary containing information about the current category
+    * the questions in a given category as a list of formatted questions. The questions are paginated for a max of 10 per page
+    * a success message
+    * the total number of questions being returned 
+* Sample: curl http://localhost:5000/categories/1/questions -X GET
+```
+{
+    "current_category": {
+        "id": 1,
+        "type": "Science"
+    },
+    "questions": {
+        "answer": "4",
+        "category": 1,
+        "difficulty": 1,
+        "id": 1,
+        "question": "What is 2+2?"
+    },
+    "success": true,
+    "total_questiosn": 1
+}
+```
+A formatted question is a dictionary with the following format:
+```
+{
+    "answer": str,
+    "category": int,
+    "difficulty": int,
+    "id": int,
+    "question": str
+}
+```
+
 #### GET /questions
 
 #### POST /questions
 
-#### DELETE /questions/<int:question_id>
+#### DELETE /questions/\<int:question_id\>
 
 #### POST /quizzes
 
