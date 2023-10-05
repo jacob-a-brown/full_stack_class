@@ -188,7 +188,8 @@ def create_app(test_config=None):
   def play_quiz():
     body = request.get_json()
 
-    if 'quiz_category' not in body.keys() or 'previous_questions' not in body.keys():
+    if 'quiz_category' not in body.keys() \
+    or 'previous_questions' not in body.keys():
       abort(422)
 
     quiz_category = body.get("quiz_category")
