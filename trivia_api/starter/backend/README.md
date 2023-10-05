@@ -79,7 +79,7 @@ The messages for the others are as follows:
 
 * Returns a JSON object that contains
     * all categories
-    * the total number of categories
+    * the total number of categories in a dictionary where the key-value pair is category_id: category string
     * a success message
 * Sample: curl http://localhost:5000/categories -X GET
 ```
@@ -111,15 +111,25 @@ The messages for the others are as follows:
         "id": 1,
         "type": "Science"
     },
-    "questions": {
-        "answer": "4",
-        "category": 1,
-        "difficulty": 1,
-        "id": 1,
-        "question": "What is 2+2?"
-    },
+    "questions": [
+        {
+            "answer": "4",
+            "category": 1,
+            "difficulty": 1,
+            "id": 1,
+            "question": "What is 2+2?"
+        },
+        {
+            "answer": "An unconfined aquifier",
+            "category": 1,
+            "difficulty": 3,
+            "id": 2
+            "question": "Is it easier to recharge a confined or an unconfined aquifer?"
+        }
+
+    ],
     "success": true,
-    "total_questiosn": 1
+    "total_questions": 2
 }
 ```
 A formatted question is a dictionary with the following format:
@@ -135,33 +145,95 @@ A formatted question is a dictionary with the following format:
 
 #### GET /questions
 
+* Returns a JSON object that contains
+    * all categories
+    * the current category as null because one has not yet been chosen
+    * all questions as a list of formatted questions. The questions are paginated for a max of 10 per page
+    * a success message
+    * the total number of questions being returned
+* Sample: curl http://localhost:5000/questions -X GET
+```
+{
+    "categories": {
+        "1": "Science",
+        "2": "Art",
+        "3": "Geography",
+        "4": "History",
+        "5": "Entertainment",
+        "6": "Sports"
+    },
+    "current_category": null,
+    "questions": [
+        {
+            "answer": "4",
+            "category": 1,
+            "difficulty": 1,
+            "id": 1,
+            "question": "What is 2+2?"
+        },
+        {
+            "answer": "Mac Dre",
+            "category": 2,
+            "difficulty": 2,
+            "id": 2,
+            "question": "Who wrote the song "Thizzle Dance"?
+        }
+    ],
+    "success": true,
+    "total_questions": 2
+}
+```
+A formatted question is a dictionary with the following format:
+```
+{
+    "answer": str,
+    "category": int,
+    "difficulty": int,
+    "id": int,
+    "question": str
+}
+```
 #### POST /questions
 
+* POST requests to this endpoint has two functionalities. The first is to search for questions and the other is to create a new question.
+
+##### Search
+
+* The JSON object that is passed via POST to this endpoint must contain the key "searchTerm" with a related search term string.
+* Returns a JSON object that contains
+    * a list of formatted questions that contain the search term string. The search is case-insensitive. The questions are paginated for a max of 10 per page
+    * a success message
+    * the total number of questions being returned
+* Sample: curl http://localhost:5000/questions -X POST -H 'Content-Type: application/json' -d '{"searchTerm": "Thizzle"}'
+```
+{
+    "questions": [
+        {
+            "answer": "Mac Dre",
+            "category": 2,
+            "difficulty": 2,
+            "id": 2,
+            "question": "Who wrote the song "Thizzle Dance"?
+        }
+    ],
+    "success": true,
+    "total_questions": 1
+}
+```
+A formatted question is a dictionary with the following format:
+```
+{
+    "answer": str,
+    "category": int,
+    "difficulty": int,
+    "id": int,
+    "question": str
+}
+```
 #### DELETE /questions/\<int:question_id\>
 
 #### POST /quizzes
 
-```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
-
-Endpoints
-GET '/api/v1.0/categories'
-GET ...
-POST ...
-DELETE ...
-
-GET '/api/v1.0/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
-{'1' : "Science",
-'2' : "Art",
-'3' : "Geography",
-'4' : "History",
-'5' : "Entertainment",
-'6' : "Sports"}
-
-```
 
 
 ## Testing
