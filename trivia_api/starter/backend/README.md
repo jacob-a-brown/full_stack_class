@@ -95,7 +95,7 @@ The messages for the others are as follows:
 }
 ```
 
-#### GET /categories/<int:category_id>/questions
+#### GET /categories/\<int:category_id\>/questions
 
 #### GET /questions
 
