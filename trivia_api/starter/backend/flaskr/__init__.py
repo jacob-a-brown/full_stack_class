@@ -1,36 +1,12 @@
 import os
 from flask import Flask, request, abort, jsonify
-from flask_sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy, Pagination
 from flask_cors import CORS
 import random
 
 from models import setup_db, Question, Category
 
 QUESTIONS_PER_PAGE = 10
-
-def paginate_results(display_items, request, interval):
-  """
-  Paginate and format the results
-
-  Args:
-    display_items (list): the items to be paginated
-    request (request): the request item from the endpoint
-    interval (int): the number of items to be displayed per page
-
-  Returns:
-    list: the formatted and paginated results for a given page
-  """
-  # default to page 1 if "page" is not a key provided to the request
-  page = request.args.get("page", 1, type=int)
-  
-  # start and end index
-  start = (page - 1) * interval
-  end = start + interval
-
-  # collect, format, and return results
-  paginated_results = display_items[start:end]
-  formatted_paginated_results = [pr.format() for pr in paginated_results]
-  return formatted_paginated_results
 
 def create_app(test_config=None):
   # create and configure the app
@@ -81,22 +57,34 @@ def create_app(test_config=None):
 
     current_category = current_category.format()
 
-    questions = Question.query.filter(Question.category == category_id).all()
-    paginated_questions = paginate_results(questions,
-                                           request,
-                                           QUESTIONS_PER_PAGE)
+    # default to page 1 if "page" is not a key provided to the request
+    page = request.args.get("page", 1, type=int)
+
+    # user SQLALchemy's pagination method for speed and accuracy
+    questions = Question.query.order_by(Question.id).\
+      filter(Question.category==category_id).\
+      paginate(page, QUESTIONS_PER_PAGE, False)
+
+    formatted_questions = [question.format() for question in questions.items]
 
     return jsonify({
       "success": True,
-      "questions": paginated_questions,
-      "total_questions": len(paginated_questions),
+      "questions": formatted_questions,
+      "total_questions": len(Question.query.\
+                         filter(Question.category==category_id).all()),
       "current_category": current_category
       })
 
   @app.route("/questions", methods=["GET"])
   def get_questions():
-    questions = Question.query.order_by(Question.id).all()
-    current_questions = paginate_results(questions, request, QUESTIONS_PER_PAGE)
+    # default to page 1 if "page" is not a key provided to the request
+    page = request.args.get("page", 1, type=int)
+
+    # user SQLALchemy's pagination method for speed and accuracy
+    questions = Question.query.order_by(Question.id).\
+      paginate(page, QUESTIONS_PER_PAGE, False)
+
+    formatted_questions = [question.format() for question in questions.items]
 
     categories = Category.query.order_by(Category.id).all()
     # change the categories to a dictionary of id: type to cooperate with
@@ -105,13 +93,13 @@ def create_app(test_config=None):
     for category in categories:
       formatted_categories_dict[category.id] = category.type
 
-    if len(current_questions) == 0:
+    if len(formatted_questions) == 0:
       abort(404)
 
     return jsonify({
       "success": True,
-      "questions": current_questions,
-      "total_questions": len(questions),
+      "questions": formatted_questions,
+      "total_questions": len(Question.query.all()),
       "current_category": None,
       "categories": formatted_categories_dict
       })
@@ -134,6 +122,9 @@ def create_app(test_config=None):
   @app.route("/questions", methods=["POST"])
   def search_create_question():
     body = request.get_json()
+    
+    # default to page 1 if "page" is not a key provided to the request
+    page = request.args.get("page", 1, type=int)
 
     if body is None:
       abort(422)
@@ -145,15 +136,14 @@ def create_app(test_config=None):
     if search is not None:
       # search for a question
       questions = Question.query.filter(Question.question.ilike(
-        f'%{search}%')).all()
-      paginated_questions = paginate_results(questions,
-                                             request,
-                                             QUESTIONS_PER_PAGE)
+        f'%{search}%')).paginate(page, QUESTIONS_PER_PAGE, False)
+
+      formatted_questions = [question.format() for question in questions.items]
 
       return jsonify({
         "success": True,
-        "questions": paginated_questions,
-        "total_questions": len(paginated_questions)
+        "questions": formatted_questions,
+        "total_questions": len(formatted_questions)
         })
 
     else:
@@ -171,15 +161,16 @@ def create_app(test_config=None):
 
       new_question.insert()
 
-      all_questions = Question.query.order_by(Question.id).all()
-      paginated_questions = paginate_results(all_questions,
-                                             request,
-                                             QUESTIONS_PER_PAGE)
+      # user SQLALchemy's pagination method for speed and accuracy
+      questions = Question.query.order_by(Question.id).\
+        paginate(page, QUESTIONS_PER_PAGE, False)
+
+      formatted_questions = [question.format() for question in questions.items]
 
       return jsonify({
         "success": True,
-        "questions": paginated_questions,
-        "total_questions": len(paginated_questions),
+        "questions": formatted_questions,
+        "total_questions": len(Question.query.all()),
         "current_category": category
         })
 
