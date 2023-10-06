@@ -1,4 +1,6 @@
 import os
+from os import environ as env
+from dotenv import load_dotenv, dotenv_values
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
@@ -6,6 +8,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flaskr import create_app
 from models import setup_db, Question, Category
 
+load_dotenv()
+
+USER = env["DB_USER"]
+PASSWORD = env["DB_PASS"]
+HOST = env["DB_HOST"]
+NAME = env["DB_NAME_TEST"]
 
 class TriviaTestCase(unittest.TestCase):
     """This class represents the trivia test case"""
@@ -14,9 +22,8 @@ class TriviaTestCase(unittest.TestCase):
         """Define test variables and initialize app."""
         self.app = create_app()
         self.client = self.app.test_client
-        self.database_name = "trivia_test"
         self.database_path = database_path = "postgresql://{}:{}@{}/{}".format(
-                    "student", "student", "localhost:5432", self.database_name)
+                    USER, PASSWORD, HOST, NAME)
         setup_db(self.app, self.database_path)
 
         self.new_question = {"question": "what is 2+2?",
@@ -88,7 +95,15 @@ class TriviaTestCase(unittest.TestCase):
 
     # test to delete a question via the endpoint /questions/<int:question_id>
     def test_delete_question(self):
-        response = self.client().delete("/questions/4")
+        # create the question that will be deleted
+        question = Question(question='test',
+                            answer='test',
+                            category=4,
+                            difficulty=4)
+        question.insert()
+        test_id = question.id
+
+        response = self.client().delete(f"/questions/{test_id}")
         data = json.loads(response.data)
 
         self.assertEqual(response.status_code, 200)
