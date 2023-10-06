@@ -4,3 +4,4 @@ fyyur_app/some_info.py
 flask_cors_example/some_info.py
 class_notes.txt
 requests/backend/some_info.py
+trivia_api/start/backend/.env
