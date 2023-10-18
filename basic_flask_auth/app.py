@@ -7,9 +7,9 @@ from urllib.request import urlopen
 
 app = Flask(__name__)
 
-AUTH0_DOMAIN = @TODO_REPLACE_WITH_YOUR_DOMAIN
+AUTH0_DOMAIN = "ilovemiso.us.auth0.com"
 ALGORITHMS = ['RS256']
-API_AUDIENCE = @TODO_REPLACE_WITH_YOUR_API_AUDIENCE
+API_AUDIENCE = "miso"
 
 
 class AuthError(Exception):
@@ -28,7 +28,7 @@ def get_token_auth_header():
             'description': 'Authorization header is expected.'
         }, 401)
 
-    parts = auth.split()
+    parts = auth.split(' ')
     if parts[0].lower() != 'bearer':
         raise AuthError({
             'code': 'invalid_header',
@@ -49,7 +49,6 @@ def get_token_auth_header():
 
     token = parts[1]
     return token
-
 
 def verify_decode_jwt(token):
     jsonurl = urlopen(f'https://{AUTH0_DOMAIN}/.well-known/jwks.json')
@@ -80,7 +79,6 @@ def verify_decode_jwt(token):
                 audience=API_AUDIENCE,
                 issuer='https://' + AUTH0_DOMAIN + '/'
             )
-
             return payload
 
         except jwt.ExpiredSignatureError:
@@ -104,21 +102,46 @@ def verify_decode_jwt(token):
                 'description': 'Unable to find the appropriate key.'
             }, 400)
 
+def check_permissions(permission, payload):
+    if "permissions" not in payload:
+        abort(400)
 
-def requires_auth(f):
-    @wraps(f)
-    def wrapper(*args, **kwargs):
-        token = get_token_auth_header()
-        try:
-            payload = verify_decode_jwt(token)
-        except:
-            abort(401)
-        return f(payload, *args, **kwargs)
+    if permission not in payload["permissions"]:
+        abort(403)
 
-    return wrapper
+    return True
+
+def requires_auth(permission=''):
+    def requires_auth_decorator(f):
+        @wraps(f)
+        def wrapper(*args, **kwargs):
+            token = get_token_auth_header()
+            try:
+                payload = verify_decode_jwt(token)
+            except:
+                abort(401)
+
+            # doesn't need to return anything. it will abort if permission is
+            # not included or not correct
+            check_permissions(permission, payload)
+
+            return f(payload, *args, **kwargs)
+        return wrapper
+    return requires_auth_decorator
+
 
 @app.route('/headers')
-@requires_auth
+@requires_auth('')
 def headers(payload):
     print(payload)
     return 'Access Granted'
+
+
+@app.route('/soup')
+@requires_auth("get:soup")
+def soup(jwt):
+    print(jwt)
+    return "not implemented"
+
+if __name__ == "__main__":
+    header = requires_auth(headers)
