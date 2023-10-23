@@ -17,7 +17,7 @@ CORS(app)
 !! NOTE THIS MUST BE UNCOMMENTED ON FIRST RUN
 !! Running this function will add one
 '''
-# db_drop_and_create_all()
+#db_drop_and_create_all()
 
 # ROUTES
 '''
@@ -28,6 +28,16 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route("/drinks", methods=["GET"])
+def get_drinks():
+    # obtain and format drinks
+    drinks = Drink.query.order_by(Drink.id).all()
+    formatted_drinks = [drink.short() for drink in drinks]
+
+    return jsonify({
+        "success": True,
+        "drinks": formatted_drinks
+        }), 200
 
 
 '''
@@ -38,6 +48,17 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drinks} where drinks is the list of drinks
         or appropriate status code indicating reason for failure
 '''
+@app.route("/drinks-detail", methods=["GET"])
+@requires_auth("get:drinks-detail")
+def get_drink_detail():
+    # obtain and format drinks
+    drinks = Drink.query.order_by(Drink.id).all()
+    formatted_drinks = [drink.long() for drink in drinks]
+
+    return jsonify({
+        "success": True,
+        "drinks": formatted_drinks
+        }), 200
 
 
 '''
@@ -49,6 +70,37 @@ CORS(app)
     returns status code 200 and json {"success": True, "drinks": drink} where drink an array containing only the newly created drink
         or appropriate status code indicating reason for failure
 '''
+@app.route("/drinks", methods=["POST"])
+@requires_auth("post:drinks")
+def post_drink():
+    drink_data = request.get_json()
+    title = drink_data.get("title", None)
+    recipe = drink_data.get("recipe", None)
+
+    # can't be empty
+    if title is None or recipe is None:
+        abort(400)
+
+    # uniqueness of titles
+    all_titles = [drink.title for drink in Drink.query.all()]
+    if title in all_titles:
+        abort(400)
+
+    # format the recipe correctly
+    recipe = json.dumps(recipe)
+    if recipe[0] != "[":
+        recipe = f"[{recipe}"
+    if recipe[-1] != "]":
+        recipe = f"{recipe}]"
+
+
+    new_drink = Drink(title=title, recipe=recipe)
+    new_drink.insert()
+
+    return jsonify({
+        "success": True,
+        "drinks": new_drink.long()
+        }), 200
 
 
 '''
