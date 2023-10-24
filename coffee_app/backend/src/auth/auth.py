@@ -98,7 +98,7 @@ def check_permissions(permission, payload):
             {
             "code": "action_not_allowed",
             "description": "Permission missing for action"
-            }, 401)
+            }, 403)
 
     return True
 
@@ -120,6 +120,7 @@ def verify_decode_jwt(token):
     # get the header from the token that was passed. could be correct JWT
     # that was made with a private key from Auth0, or could be false
     unverified_header = jwt.get_unverified_header(token)
+    #print(unverified_header)
 
     # check that a kid is included in the unverified_header
     if 'kid' not in unverified_header:
@@ -138,6 +139,7 @@ def verify_decode_jwt(token):
     # match kids from private and public keys
     rsa_key = {}
     for key in jwkids['keys']:
+        #print(key['kid'])
         if key['kid'] == unverified_header['kid']:
             rsa_key = {
                 'kty': key['kty'],
@@ -148,7 +150,6 @@ def verify_decode_jwt(token):
                 }
 
     if rsa_key:
-        print(rsa_key)
         try:
             payload = jwt.decode(
                 token,
