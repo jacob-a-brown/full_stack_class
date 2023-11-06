@@ -1,6 +1,7 @@
 # Requirements for Python 3.9.13
 alembic==1.8.1
 click==8.0.4
+python-dotenv==1.0.0
 Flask==1.1.2
 Flask-Cors==4.0.0
 Flask-Migrate==4.0.4
