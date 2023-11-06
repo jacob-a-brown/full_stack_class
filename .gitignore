@@ -6,3 +6,5 @@ class_notes
 requests/backend/some_info.py
 trivia_api/starter/backend/.env
 aws_practice
+capstone/heroku_sample/starter/setup.sh
+capstone/heroku_sample/starter/venv
