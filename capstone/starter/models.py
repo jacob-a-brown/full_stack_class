@@ -2,6 +2,7 @@ import os
 from os import environ as env
 from sqlalchemy import Column, create_engine
 from flask_sqlalchemy import SQLAlchemy
+from datetime import date
 import json
 from dotenv import load_dotenv, dotenv_values
 
@@ -20,14 +21,14 @@ def setup_db(app, database_path=DATABASE_URL):
     db.app = app
     db.init_app(app)
     #db.create_all()
-    return db
+    #return db
 
 class Movie(db.Model):
-    __tablename__ = 'movie'
+    __tablename__ = 'movies'
 
     id = Column(db.Integer, primary_key = True)
     title = Column(db.String)
-    release_date = Column(db.DateTime)
+    release_date = Column(db.Date)
 
     def __init__(self, title, release_date):
         self.title = title
@@ -40,22 +41,31 @@ class Movie(db.Model):
         return {
             "id": self.id,
             "title": self.title,
-            "release_date": self.release_date
+            "release_date": self.release_date.strftime('%Y-%m-%d')
         }
 
     def insert(self):
-        db.session.add(self)
-        db.session.commit()
+        try:
+            db.session.add(self)
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
     def update(self):
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
     def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
 class Actor(db.Model):
-    __tablename = "actor"
+    __tablename__ = "actors"
 
     id = Column(db.Integer, primary_key = True)
     name = Column(db.String)
@@ -80,11 +90,20 @@ class Actor(db.Model):
 
     def insert(self):
         db.session.add(self)
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
     def update(self):
-        db.session.commit()
+        try:
+            db.session.commit()
+        except Exception as e:
+            print(e)
 
     def delete(self):
-        db.session.delete(self)
-        db.session.commit()
+        try:
+            db.session.delete(self)
+            db.session.commit()
+        except Exception as e:
+            print(e)
