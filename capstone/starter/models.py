@@ -20,8 +20,6 @@ def setup_db(app, database_path=DATABASE_URL):
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
     db.app = app
     db.init_app(app)
-    #db.create_all()
-    #return db
 
 class Movie(db.Model):
     __tablename__ = 'movies'
@@ -45,24 +43,15 @@ class Movie(db.Model):
         }
 
     def insert(self):
-        try:
-            db.session.add(self)
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        db.session.add(self)
+        db.session.commit()
 
     def update(self):
-        try:
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        db.session.commit()
 
     def delete(self):
-        try:
-            db.session.delete(self)
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        db.session.delete(self)
+        db.session.commit()
 
 class Actor(db.Model):
     __tablename__ = "actors"
@@ -90,20 +79,12 @@ class Actor(db.Model):
 
     def insert(self):
         db.session.add(self)
-        try:
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        db.session.commit()
 
     def update(self):
-        try:
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        db.session.commit()
+
 
     def delete(self):
-        try:
-            db.session.delete(self)
-            db.session.commit()
-        except Exception as e:
-            print(e)
+        db.session.delete(self)
+        db.session.commit()
