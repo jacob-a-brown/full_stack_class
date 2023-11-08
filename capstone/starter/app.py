@@ -323,11 +323,14 @@ def create_app(test_config=None):
 
     @app.errorhandler(AuthError)
     def auth_error_handler(error):
-        return jsonify({
+        res = jsonify({
             "success": False,
             "error": error.status_code,
-            "message": error.error
+            "message": error.error,
             })
+        res.status_code = error.status_code
+
+        return res
 
     return app
 

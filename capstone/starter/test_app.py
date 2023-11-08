@@ -342,9 +342,148 @@ class CapstoneTestCase(unittest.TestCase):
 
 
     ################
-    # RBAC fail tests
+    # RBAC fail tests. missing permission for each endpoint
     # the succesful endpoint tests determine that the correct roles work
     ################
+
+    #####
+    #401 tests - missing auth
+    #####
+
+    def test_401_missing_auth_header_get_actors(self):
+        response = self.client().get('/actors')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_get_specific_actor(self):
+        response = self.client().get('/actors/1')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_delete_actors(self):
+        response = self.client().delete('/actors/1')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_create_actor(self):
+        response = self.client().post('/actors',
+            json = self.new_actor)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_update_actor(self):
+        response = self.client().patch('/actors/1',
+            json = self.new_actor)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+
+    def test_401_missing_auth_header_get_movies(self):
+        response = self.client().get('/movies')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_get_specific_movie(self):
+        response = self.client().get('/movies/1')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_delete_movies(self):
+        response = self.client().delete('/movies/1')
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_create_movie(self):
+        response = self.client().post('/movies',
+            json = self.new_actor)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    def test_401_missing_auth_header_update_movie(self):
+        response = self.client().patch('/movies/1',
+            json = self.new_actor)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 401)
+        self.assertEqual(data["success"], False)
+
+    #####
+    # 403 tests - wrong permissions
+    # not testing get methods as that is the most basic with the casting
+    # assistant
+    #####
+
+    def test_403_missing_auth_header_delete_actors(self):
+        response = self.client().delete('/actors/1',
+            headers = self.casting_assistant)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(data["success"], False)
+
+    def test_403_missing_auth_header_create_actor(self):
+        response = self.client().post('/actors',
+            json = self.new_actor,
+            headers = self.casting_assistant)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(data["success"], False)
+
+    def test_403_missing_auth_header_update_actor(self):
+        response = self.client().patch('/actors/1',
+            json = self.new_actor,
+            headers = self.casting_assistant)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(data["success"], False)
+
+    def test_403_missing_auth_header_delete_movies(self):
+        response = self.client().delete('/movies/1',
+            headers = self.casting_assistant)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(data["success"], False)
+
+    def test_403_missing_auth_header_create_movie(self):
+        response = self.client().post('/movies',
+            json = self.new_actor,
+            headers = self.casting_assistant)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(data["success"], False)
+
+    def test_403_missing_auth_header_update_movie(self):
+        response = self.client().patch('/movies/1',
+            json = self.new_actor,
+            headers = self.casting_assistant)
+        data = json.loads(response.data)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertEqual(data["success"], False)
+
+
 
 if __name__ == "__main__":
     unittest.main()
