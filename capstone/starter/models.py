@@ -53,6 +53,7 @@ class Movie(db.Model):
         db.session.delete(self)
         db.session.commit()
 
+
 class Actor(db.Model):
     __tablename__ = "actors"
 
