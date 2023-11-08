@@ -5,8 +5,12 @@ from flask_cors import CORS
 from flask_migrate import Migrate
 from models import db, setup_db, Movie, Actor
 import datetime
+from auth import requires_auth, AuthError
 
 def validate_date_type(date_text):
+    """
+    Used to validate date data type from 
+    """
     try:
         datetime.date.fromisoformat(date_text)
         return True
@@ -29,7 +33,7 @@ def create_app(test_config=None):
     @app.route('/am_i_healthy', methods = ['GET'])
     def test_health():
         """
-        Used to test if the app runs and is healthy
+        Used to test if the app runs
         """
         return "You are healthy"
 
@@ -38,6 +42,7 @@ def create_app(test_config=None):
     ################
 
     @app.route('/actors', methods = ["GET"])
+    @requires_auth("get:actors")
     def get_all_actors():
         actors = Actor.query.order_by(Actor.id).all()
 
@@ -53,6 +58,7 @@ def create_app(test_config=None):
             })
 
     @app.route('/actors/<actor_id>', methods = ["GET"])
+    @requires_auth("get:actors")
     def get_specific_actor(actor_id):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
@@ -65,6 +71,7 @@ def create_app(test_config=None):
             })
 
     @app.route('/actors/<actor_id>', methods = ["DELETE"])
+    @requires_auth("delete:actor")
     def delete_actor(actor_id):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
 
@@ -81,6 +88,7 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/actors', methods = ["POST"])
+    @requires_auth("create:actor")
     def create_actor():
         body = request.get_json()
 
@@ -109,6 +117,7 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/actors/<actor_id>', methods = ["PATCH"])
+    @requires_auth("update:actor")
     def update_actor(actor_id):
         actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
         if actor is None:
@@ -150,6 +159,7 @@ def create_app(test_config=None):
     ################
 
     @app.route('/movies', methods = ["GET"])
+    @requires_auth("get:movies")
     def get_all_movies():
 
         movies = Movie.query.order_by(Movie.id).all()
@@ -166,6 +176,7 @@ def create_app(test_config=None):
             })
 
     @app.route('/movies/<movie_id>', methods = ["GET"])
+    @requires_auth("get:movies")
     def get_specific_movie(movie_id):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
@@ -178,6 +189,7 @@ def create_app(test_config=None):
             }) 
 
     @app.route('/movies/<movie_id>', methods = ["DELETE"])
+    @requires_auth("delete:movie")
     def delete_movie(movie_id):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
 
@@ -194,6 +206,7 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/movies', methods = ["POST"])
+    @requires_auth("create:movie")
     def create_movie():
         body = request.get_json()
 
@@ -223,6 +236,7 @@ def create_app(test_config=None):
             abort(422)
 
     @app.route('/movies/<movie_id>', methods = ["PATCH"])
+    @requires_auth("update:movie")
     def update_movie(movie_id):
         movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
         
@@ -266,6 +280,14 @@ def create_app(test_config=None):
             "message": "bad request"
         }), 400
 
+    @app.errorhandler(403)
+    def bad_request(error):
+        return jsonify({
+            "success": False,
+            "error": 403,
+            "message": "incorrect permissions"
+        }), 403
+
     @app.errorhandler(404)
     def not_found(error):
         return jsonify({
@@ -298,6 +320,14 @@ def create_app(test_config=None):
             "error": 500,
             "message": "internal server error"
         }), 500
+
+    @app.errorhandler(AuthError)
+    def auth_error_handler(error):
+        return jsonify({
+            "success": False,
+            "error": error.status_code,
+            "message": error.error
+            })
 
     return app
 
